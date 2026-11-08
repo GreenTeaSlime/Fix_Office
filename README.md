@@ -6,9 +6,9 @@
 
 ## 다운로드
 
-**[최신 버전 받기](https://github.com/TacticMInd/Fix_Office/releases/latest)** — `Fix_Office_v…_win64.zip`
+**[최신 버전 받기](https://github.com/GreenTeaSlime/Fix_Office/releases/latest)** — `Fix_Office_v…_win64.zip`
 
-지난 버전은 [Releases](https://github.com/TacticMInd/Fix_Office/releases)에 있습니다.
+지난 버전은 [Releases](https://github.com/GreenTeaSlime/Fix_Office/releases)에 있습니다.
 
 ## 어떤 게임인가요
 
@@ -36,7 +36,7 @@
 
 ## 버그 제보
 
-[Issues](https://github.com/TacticMInd/Fix_Office/issues)에 남겨 주세요. 저장 위치에 있는 `Player.log`와, 오류 안내가 떴다면 `fixoffice_errors.txt` · `fixoffice_emergency.json`을 첨부해 주시면 원인을 찾기 쉽습니다.
+[Issues](https://github.com/GreenTeaSlime/Fix_Office/issues)에 남겨 주세요. 저장 위치에 있는 `Player.log`와, 오류 안내가 떴다면 `fixoffice_errors.txt` · `fixoffice_emergency.json`을 첨부해 주시면 원인을 찾기 쉽습니다.
 
 ## 만든 방식
 
