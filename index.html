@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Fix_Office</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #14110F; }
+    #unity-canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: block; background: #14110F; outline: none; }
+    #loading { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: flex; flex-direction: column;
+               align-items: center; justify-content: center; color: #E8E0D2; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+    #loading-title { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+    #loading-sub { margin-top: 6px; font-size: 13px; color: #8C806E; }
+    #loading-bar { margin-top: 22px; width: 280px; max-width: 70%; height: 6px; background: #2A2420; border-radius: 3px; overflow: hidden; }
+    #loading-fill { width: 0%; height: 100%; background: #F0C882; transition: width 0.15s linear; }
+    #loading-note { margin-top: 14px; font-size: 12px; color: #8C806E; text-align: center; padding: 0 24px; line-height: 1.5; }
+    #loading-note.error { color: #E89B8C; }
+    /* 폰을 세로로 들었을 때: 게임은 가로 화면 기준이다 */
+    #rotate { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center;
+              background: #14110F; color: #E8E0D2; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; text-align: center; z-index: 10; }
+    #rotate-title { font-size: 20px; font-weight: bold; }
+    #rotate-sub { margin-top: 8px; font-size: 13px; color: #8C806E; padding: 0 24px; line-height: 1.5; }
+    /* 2026-11-12: 세로가 기본 배치가 되어 이 안내는 쓰지 않는다(요소는 남겨 둔다) */
+  </style>
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="loading">
+    <div id="loading-title">해결사 사무소</div>
+    <div id="loading-sub">업무 통합 관리 시스템을 여는 중</div>
+    <div id="loading-bar"><div id="loading-fill"></div></div>
+    <div id="loading-note">처음 열 때는 내려받느라 시간이 걸릴 수 있습니다.</div>
+  </div>
+  <div id="rotate">
+    <div id="rotate-title">화면을 가로로 돌려 주세요</div>
+    <div id="rotate-sub">해결사 사무소는 가로 화면에서 진행합니다. 화면 회전 잠금이 켜져 있으면 풀어 주세요.</div>
+  </div>
+  <script>
+    // Fix_Office 웹 템플릿 — 캔버스가 브라우저 창을 가득 채운다.
+    // 게임 화면은 작업 공간이 1280×720보다 좁으면 깨지므로, 창이 그보다 작으면 그리는 해상도를 올려서(브라우저가 줄여 보여 준다) 최소 크기를 지킨다.
+    var canvas = document.querySelector("#unity-canvas");
+    var loading = document.querySelector("#loading");
+    var fill = document.querySelector("#loading-fill");
+    var note = document.querySelector("#loading-note");
+    var MIN_WIDTH = 1280, MIN_HEIGHT = 720;
+
+    // 폰(작은 터치 화면 · 주소의 ?phone=1)은 게임이 폰 화면 배치로 배율을 정한다 — 기기 해상도 그대로 그린다.
+    // (기기 해상도보다 크게 그리면 화면 아래쪽 입력이 닿지 않는다 — 2026-11-12 세로 화면에서 확인)
+    function isPhone() {
+      var q = window.location.search || "";
+      if (/[?&]phone=1(&|$)/.test(q)) return true;
+      if (/[?&]phone=0(&|$)/.test(q)) return false;
+      var coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+      var shortSide = Math.min(window.screen.width || 0, window.screen.height || 0);
+      return coarse && shortSide > 0 && shortSide < 600;
+    }
+    var PHONE = isPhone();
+
+    function renderScale() {
+      var dpr = window.devicePixelRatio || 1;
+      if (PHONE) return dpr;
+      var w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+      return Math.max(dpr, MIN_WIDTH / w, MIN_HEIGHT / h);
+    }
+
+    function showError(message) {
+      loading.style.display = "flex";
+      note.className = "error";
+      note.textContent = "게임을 열지 못했습니다 — " + message;
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/Web.loader.js";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/Web.data.unityweb",
+      frameworkUrl: buildUrl + "/Web.framework.js.unityweb",
+      codeUrl: buildUrl + "/Web.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Margin Office",
+      productName: "Fix_Office",
+      productVersion: "0.1.0",
+      devicePixelRatio: renderScale(),
+      showBanner: function (message, type) {
+        if (type === "error") showError(message);
+        else console.warn("[Fix_Office] " + message);
+      }
+    };
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        fill.style.width = Math.round(progress * 100) + "%";
+      }).then(function (unityInstance) {
+        loading.style.display = "none";
+        canvas.focus();
+        window.addEventListener("resize", function () {
+          if (unityInstance.Module) unityInstance.Module.devicePixelRatio = renderScale();
+        });
+      }).catch(function (message) {
+        showError(String(message));
+      });
+    };
+    script.onerror = function () { showError("빌드 파일을 찾지 못했습니다."); };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
